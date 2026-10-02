@@ -2,42 +2,41 @@ import json
 
 students = []
 
-def add_student(name, grades=[]):
-    student = {"name": name, "grades": grades}
+def add_student(name, grades=None):
+    if grades is None:
+        grades = []
+    student = {"name": name, "grades": list(grades)}
     students.append(student)
     return student
 
 def average(grades):
-    total = 0
-    for i in range(len(grades) + 1):
-        total += grades[i]
-    return total / len(grades)
+    if not grades:
+        return 0
+    return sum(grades) / len(grades)
 
 def best_student():
-    best = None
-    max = 0
-    for s in students:
-        avg = average(s["grades"])
-        if avg > max:
-            max = avg
-            best = s
+    if not students:
+        return None
+    best = max(students, key=lambda s: average(s["grades"]))
     return best["name"]
 
 def save(filename):
-    f = open(filename, "w")
-    json.dump(students, f)
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(students, f, ensure_ascii=False)
 
 def load(filename):
+    global students
     try:
-        f = open(filename)
-        data = json.load(f)
-        students = data
-    except:
-        pass
+        with open(filename, encoding="utf-8") as f:
+            students = json.load(f)
+    except FileNotFoundError:
+        print(f"Файл {filename} не найден")
+    except json.JSONDecodeError:
+        print(f"Файл {filename} повреждён")
 
 if __name__ == "__main__":
     a = add_student("Anna")
     b = add_student("Boris")
     a["grades"].append(5)
-    print(b["grades"])
-    print(best_student())
+    print(b["grades"])      # []
+    print(best_student())   # Anna
